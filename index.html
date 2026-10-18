@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sport">
+<meta name="theme-color" content="#f1f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111614" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<title>Semaine Sport</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  /* Layout: tabs (Semaine / Calendrier). Semaine = control strip + 7 day cards. Calendrier = month grid colored by weighted completion. */
+  :root {
+    --bg: #f1f3ee;
+    --surface: #ffffff;
+    --surface-2: #e7ebe4;
+    --line: #d3d9d0;
+    --fg: #16211b;
+    --muted: #5e6a62;
+    --accent: #1e6a44;
+    --accent-ink: #ffffff;
+    --foot: #1e6a44;
+    --footing: #b2520f;
+    --renfo: #2d4f82;
+    --leger: #6b4f9a;
+    --missed: #f3d9c9;
+    --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+    --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111614; --surface: #1a211d; --surface-2: #232c27; --line: #2f3a34;
+      --fg: #e7ece8; --muted: #9aa69e; --accent: #4fb67f; --accent-ink: #0d1a12;
+      --foot: #4fb67f; --footing: #e4893f; --renfo: #7aa3e0; --leger: #b094e0; --missed: #4a2e1f;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111614; --surface: #1a211d; --surface-2: #232c27; --line: #2f3a34;
+    --fg: #e7ece8; --muted: #9aa69e; --accent: #4fb67f; --accent-ink: #0d1a12;
+    --foot: #4fb67f; --footing: #e4893f; --renfo: #7aa3e0; --leger: #b094e0; --missed: #4a2e1f;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: var(--body); font-size: 15px; line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 48px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(32px, 6vw, 48px); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+  .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+
+  .tabs { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 4px; gap: 4px; }
+  .tabs button { border: 0; background: transparent; color: var(--fg); font-family: var(--display); font-size: 18px; font-weight: 600; padding: 7px 20px; border-radius: 7px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+  .nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nav button { background: var(--surface); border: 1px solid var(--line); color: var(--fg); width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; }
+  .nav button:hover:not(:disabled) { background: var(--surface-2); }
+  .nav button:disabled { opacity: .35; cursor: not-allowed; }
+  .nav .label { font-family: var(--display); font-size: 20px; font-weight: 600; min-width: 190px; text-align: center; font-variant-numeric: tabular-nums; }
+  .nav .today-btn { width: auto; padding: 0 12px; font-size: 13px; font-family: var(--body); font-weight: 600; }
+
+  .controls { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  @media (max-width: 640px) { .controls { grid-template-columns: 1fr; } }
+  .controls .q { font-family: var(--display); font-size: 20px; font-weight: 600; }
+  .controls .hint { color: var(--muted); font-size: 13px; }
+  .seg { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 4px; gap: 4px; }
+  .seg button { border: 0; background: transparent; color: var(--fg); font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 7px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .summary { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+  .chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--c); }
+  .progress { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .progress strong { color: var(--fg); font-size: 15px; }
+  .bar { width: 140px; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .bar b { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+
+  .week { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 12px; }
+  .day { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .day.is-today { box-shadow: inset 0 0 0 2px var(--accent); }
+  .day.rest { background: transparent; border-style: dashed; }
+  .day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .day-name { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1; }
+  .day-date { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .day-score { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .today-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--accent); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; padding: 3px 8px; border-radius: 4px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); }
+
+  .block { border-top: 1px solid var(--line); padding-top: 8px; }
+  .block-title { display: flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--c, var(--muted)); margin-bottom: 4px; }
+  .block-title i { width: 8px; height: 8px; border-radius: 2px; background: var(--c, var(--muted)); flex: none; }
+  .block-title small { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .block-title .w { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); font-size: 11px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  label.item { display: flex; align-items: flex-start; gap: 10px; padding: 5px 6px; border-radius: 6px; cursor: pointer; }
+  label.item:hover { background: var(--surface-2); }
+  label.item input { appearance: none; margin: 2px 0 0; width: 18px; height: 18px; border: 2px solid var(--line); border-radius: 5px; flex: none; background: var(--surface); cursor: pointer; position: relative; }
+  label.item input:checked { background: var(--accent); border-color: var(--accent); }
+  label.item input:checked::after { content: ""; position: absolute; left: 4px; top: 0px; width: 5px; height: 10px; border: solid var(--accent-ink); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+  label.item input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.item span { flex: 1; min-width: 0; }
+  label.item input:checked + span { color: var(--muted); text-decoration: line-through; }
+  label.item em { font-style: normal; color: var(--muted); font-size: 13px; }
+  .rest-text { color: var(--muted); font-size: 14px; margin: 0; }
+  .day.done .day-name::after { content: " ✓"; color: var(--accent); }
+
+  /* Calendrier */
+  .cal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+  .cal-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+  .cal-stat { font-size: 13px; color: var(--muted); }
+  .cal-stat strong { font-family: var(--display); font-size: 22px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .cal-dow { text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--muted); padding-bottom: 2px; }
+  .cell { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 8px; background: var(--surface-2); border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-variant-numeric: tabular-nums; cursor: default; padding: 2px; min-width: 0; color: var(--fg); font: inherit; }
+  .cell .n { font-weight: 600; font-size: 14px; line-height: 1; }
+  .cell .p { font-size: 11px; line-height: 1; opacity: .85; }
+  .cell.off { background: transparent; color: var(--muted); opacity: .5; }
+  .cell.before { background: transparent; border: 1px dashed var(--line); color: var(--muted); }
+  .cell.rest { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+  .cell.future { background: transparent; border: 1px solid var(--line); }
+  .cell.missed { background: var(--missed); }
+  .cell.scored { background: color-mix(in srgb, var(--accent) calc(var(--pct) * 1%), var(--surface-2)); }
+  .cell.scored.hi { color: var(--accent-ink); }
+  .cell.is-today { box-shadow: 0 0 0 2px var(--accent); }
+  .cell.clickable { cursor: pointer; }
+  .cell.clickable:hover { filter: brightness(.95); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); align-items: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .legend .sw { display: inline-flex; gap: 2px; }
+
+  footer { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; color: var(--muted); font-size: 13px; }
+  .reset { background: transparent; border: 1px solid var(--line); color: var(--fg); font: inherit; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+  .reset:hover { background: var(--surface-2); }
+  .reset.confirm { border-color: var(--footing); color: var(--footing); }
+  .rules { max-width: 65ch; margin: 0; }
+  @media (prefers-reduced-motion: reduce) { .bar b { transition: none; } }
+</style>
+<style>
+  /* Base autonome : remplace le cadre fourni par Claude */
+  :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); -webkit-text-size-adjust: 100%; }
+  body { margin: 0; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Programme hebdo · depuis le 19 oct. 2026</div>
+      <h1>Semaine Sport</h1>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-week" aria-selected="true" data-tab="week">Semaine</button>
+      <button type="button" role="tab" id="tab-cal" aria-selected="false" data-tab="cal">Calendrier</button>
+    </div>
+  </header>
+
+  <!-- Onglet Semaine -->
+  <div id="view-week" class="wrap" style="gap:18px">
+    <div class="nav">
+      <button type="button" id="prevWeek" aria-label="Semaine précédente">‹</button>
+      <div class="label" id="weekLabel">—</div>
+      <button type="button" id="nextWeek" aria-label="Semaine suivante">›</button>
+      <button type="button" id="todayWeek" class="today-btn">Cette semaine</button>
+    </div>
+
+    <section class="controls">
+      <div>
+        <div class="q">Cette semaine, le 2e foot tombe quel jour ?</div>
+        <div class="hint">Le foot du lundi est fixe. Le footing et les 3 séances renfo se placent automatiquement.</div>
+      </div>
+      <div class="seg" role="group" aria-label="Jour du deuxième foot">
+        <button type="button" id="seg-2" data-day="2" aria-pressed="false">Mercredi</button>
+        <button type="button" id="seg-3" data-day="3" aria-pressed="false">Jeudi</button>
+        <button type="button" id="seg-4" data-day="4" aria-pressed="false">Vendredi</button>
+      </div>
+    </section>
+
+    <section class="summary" id="summary"></section>
+    <section class="week" id="week"></section>
+
+  </div>
+
+  <!-- Onglet Calendrier -->
+  <div id="view-cal" class="wrap" style="gap:18px" hidden>
+    <div class="nav">
+      <button type="button" id="prevMonth" aria-label="Mois précédent">‹</button>
+      <div class="label" id="monthLabel">—</div>
+      <button type="button" id="nextMonth" aria-label="Mois suivant">›</button>
+      <button type="button" id="todayMonth" class="today-btn">Ce mois-ci</button>
+    </div>
+    <section class="cal">
+      <div class="cal-head">
+        <div class="cal-stat">Moyenne des jours passés ce mois-ci : <strong id="monthAvg">—</strong></div>
+        <div class="cal-stat" id="monthDone"></div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="legend">
+        <span><i style="background:var(--missed)"></i>0 % (jour passé)</span>
+        <span><span class="sw"><i style="background:color-mix(in srgb, var(--accent) 25%, var(--surface-2))"></i><i style="background:color-mix(in srgb, var(--accent) 50%, var(--surface-2))"></i><i style="background:color-mix(in srgb, var(--accent) 75%, var(--surface-2))"></i><i style="background:var(--accent)"></i></span>25 → 100 %</span>
+        <span><i style="border:1px solid var(--line)"></i>à venir / repos</span>
+        <span>Clique sur un jour pour ouvrir sa semaine.</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  const DOW = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const MONTHS_LONG = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  const FOOTING_FOR = { 4: 2, 2: 4, 3: 5 }; // 2e foot -> jour du footing
+  const START = new Date(2026, 9, 19); // lundi 19 octobre 2026
+
+  // weight : poids d'une séance entière dans le score du jour (ses exos se partagent ce poids)
+  const SESSIONS = {
+    activation: { title: 'Au réveil', color: 'var(--muted)', weight: 1, items: [
+      ['act', 'Étirements / activation', '10 min'],
+    ]},
+    foot: { title: 'Foot', color: 'var(--foot)', weight: 2, items: [
+      ['foot', 'Séance de foot', ''],
+    ]},
+    footing: { title: 'Footing', color: 'var(--footing)', weight: 2, items: [
+      ['run', 'Footing', ''],
+    ]},
+    leger: { title: 'Renfo léger', color: 'var(--leger)', weight: 2, items: [
+      ['bsu', 'Bring Sally Up', 'pompes'],
+      ['rel1', 'Abdos relevés droits', ''],
+    ]},
+    renfo: { title: 'Renfo pompes / abdos', color: 'var(--renfo)', weight: 2, items: [
+      ['pmax', 'Max de pompes', '10 min'],
+      ['trx', 'Séance TRX', ''],
+      ['abs', 'Abdos', '12 min'],
+      ['rel2', 'Abdos relevés droits', ''],
+      ['gain', 'Gainage forcé', '5 min'],
+    ]},
+  };
+
+  // ---------- dates ----------
+  function strip(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function mondayOf(d) { const x = strip(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
+  function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function key(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function sameDay(a, b) { return key(a) === key(b); }
+  const today = strip(new Date());
+
+  // ---------- storage ----------
+  const STORE = 'semaine-foot-renfo:v1';
+  function load() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; } }
+  function save(s) { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch (e) { /* stockage indisponible */ } }
+  let state = load();
+  state.weeks = state.weeks || {};
+  if (![2, 3, 4].includes(state.lastFoot2)) state.lastFoot2 = 4;
+
+  let monday = mondayOf(today) < START ? new Date(START) : mondayOf(today);
+  const calBase = today < START ? START : today;
+  let month = new Date(calBase.getFullYear(), calBase.getMonth(), 1);
+
+  function weekData(mon, create) {
+    const k = key(mon);
+    if (!state.weeks[k] && create) state.weeks[k] = { foot2: state.lastFoot2, checks: {} };
+    return state.weeks[k] || { foot2: state.lastFoot2, checks: {} };
+  }
+
+  // ---------- plan ----------
+  function buildPlan(foot2) {
+    const footing = FOOTING_FOR[foot2];
+    const sport = new Set([0, foot2, footing]);
+    return DAYS.map((name, i) => {
+      if (i === 6) return { i, name, rest: true, blocks: [], tags: [] };
+      const blocks = [SESSIONS.activation];
+      const tags = [];
+      if (i === 0 || i === foot2) { blocks.push(SESSIONS.foot); tags.push(['Foot', 'var(--foot)']); }
+      if (i === footing) { blocks.push(SESSIONS.footing); tags.push(['Footing', 'var(--footing)']); }
+      if (sport.has(i)) { blocks.push(SESSIONS.leger); tags.push(['Renfo léger', 'var(--leger)']); }
+      else { blocks.push(SESSIONS.renfo); tags.push(['Pompes / abdos', 'var(--renfo)']); }
+      return { i, name, rest: false, blocks, tags };
+    });
+  }
+
+  // score pondéré d'un jour : { done, total, pct } ou null (repos)
+  function dayScore(day, checks) {
+    if (day.rest) return null;
+    let done = 0, total = 0;
+    day.blocks.forEach(b => {
+      total += b.weight;
+      const n = b.items.filter(it => checks[day.i + ':' + it[0]]).length;
+      done += b.weight * n / b.items.length;
+    });
+    return { done, total, pct: total ? Math.round(done / total * 100) : 0 };
+  }
+  function scoreForDate(date) {
+    if (date < START) return null;
+    const mon = mondayOf(date);
+    const wd = weekData(mon, false);
+    const day = buildPlan(wd.foot2)[(date.getDay() + 6) % 7];
+    return dayScore(day, wd.checks);
+  }
+
+  // ---------- render semaine ----------
+  const weekEl = document.getElementById('week');
+  const summaryEl = document.getElementById('summary');
+  const weekLabel = document.getElementById('weekLabel');
+  const prevWeekBtn = document.getElementById('prevWeek');
+
+  function fmtRange() {
+    const a = monday, b = addDays(monday, 6);
+    const sameMonth = a.getMonth() === b.getMonth();
+    return (sameMonth ? a.getDate() : a.getDate() + ' ' + MONTHS[a.getMonth()]) + ' – ' + b.getDate() + ' ' + MONTHS[b.getMonth()] + ' ' + b.getFullYear();
+  }
+
+  function renderWeek() {
+    const wd = weekData(monday, true);
+    const plan = buildPlan(wd.foot2);
+    weekLabel.textContent = fmtRange();
+    prevWeekBtn.disabled = monday <= START;
+    [2, 3, 4].forEach(d => document.getElementById('seg-' + d).setAttribute('aria-pressed', String(d === wd.foot2)));
+
+    let wDone = 0, wTotal = 0, nDone = 0, nTotal = 0;
+    weekEl.innerHTML = '';
+    plan.forEach(day => {
+      const date = addDays(monday, day.i);
+      const isToday = sameDay(date, today);
+      const card = document.createElement('article');
+      card.className = 'day' + (isToday ? ' is-today' : '') + (day.rest ? ' rest' : '');
+      const sc = dayScore(day, wd.checks);
+      let html = '<div class="day-head"><div class="day-name">' + day.name + '</div>' +
+        (isToday ? '<span class="today-tag">Aujourd’hui</span>' : '') +
+        (sc ? '<span class="day-score">' + sc.pct + ' %</span>' : '') +
+        '<div class="day-date">' + date.getDate() + ' ' + MONTHS[date.getMonth()] + '</div></div>';
+      if (day.rest) {
+        html += '<p class="rest-text">Repos. Pas de séance prévue, pas d’activation.</p>';
+        card.innerHTML = html;
+        weekEl.appendChild(card);
+        return;
+      }
+      html += '<div class="tags">' + day.tags.map(t => '<span class="tag" style="--c:' + t[1] + '">' + t[0] + '</span>').join('') + '</div>';
+      day.blocks.forEach(b => {
+        const bDone = b.items.filter(it => wd.checks[day.i + ':' + it[0]]).length;
+        nTotal += b.items.length; nDone += bDone;
+        html += '<div class="block"><div class="block-title" style="--c:' + b.color + '"><i></i>' + b.title + ' <span class="w">· ' + b.weight + ' pt' + (b.weight > 1 ? 's' : '') + ' au total</span>' + '<small>' + bDone + '/' + b.items.length + '</small></div><ul>';
+        b.items.forEach(it => {
+          const id = 'c-' + key(date) + '-' + it[0];
+          const checked = wd.checks[day.i + ':' + it[0]] ? ' checked' : '';
+          html += '<li><label class="item"><input type="checkbox" id="' + id + '" data-k="' + day.i + ':' + it[0] + '"' + checked + '><span>' + it[1] + (it[2] ? ' <em>· ' + it[2] + '</em>' : '') + '</span></label></li>';
+        });
+        html += '</ul></div>';
+      });
+      wDone += sc.done; wTotal += sc.total;
+      if (sc.total && sc.done === sc.total) card.classList.add('done');
+      card.innerHTML = html;
+      weekEl.appendChild(card);
+    });
+
+    const pct = wTotal ? Math.round(wDone / wTotal * 100) : 0;
+    summaryEl.innerHTML =
+      '<span class="progress"><span>' + nDone + ' / ' + nTotal + ' · <strong>' + pct + ' %</strong></span><span class="bar"><b style="width:' + pct + '%"></b></span></span>';
+  }
+
+  // ---------- render calendrier ----------
+  const calGrid = document.getElementById('calGrid');
+  const monthLabel = document.getElementById('monthLabel');
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const monthAvg = document.getElementById('monthAvg');
+  const monthDone = document.getElementById('monthDone');
+
+  function renderCal() {
+    monthLabel.textContent = MONTHS_LONG[month.getMonth()] + ' ' + month.getFullYear();
+    prevMonthBtn.disabled = month <= new Date(START.getFullYear(), START.getMonth(), 1);
+    let html = DOW.map(d => '<div class="cal-dow">' + d + '</div>').join('');
+    const first = new Date(month.getFullYear(), month.getMonth(), 1);
+    const lead = (first.getDay() + 6) % 7;
+    const nDays = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    for (let i = 0; i < lead; i++) html += '<div class="cell off" aria-hidden="true"></div>';
+    let sum = 0, n = 0, full = 0;
+    for (let d = 1; d <= nDays; d++) {
+      const date = new Date(month.getFullYear(), month.getMonth(), d);
+      const isToday = sameDay(date, today);
+      let cls = 'cell', style = '', pTxt = '';
+      if (date < START) cls += ' before';
+      else {
+        cls += ' clickable';
+        const sc = scoreForDate(date);
+        if (!sc) cls += ' rest';
+        else if (sc.pct === 0 && date < today) { cls += ' missed'; pTxt = '0 %'; sum += 0; n++; }
+        else if (sc.pct === 0) cls += ' future';
+        else {
+          cls += ' scored' + (sc.pct >= 50 ? ' hi' : '');
+          style = ' style="--pct:' + sc.pct + '"';
+          pTxt = sc.pct + ' %';
+          if (date <= today) { sum += sc.pct; n++; }
+          if (sc.pct === 100) full++;
+        }
+      }
+      if (isToday) cls += ' is-today';
+      html += '<button type="button" class="' + cls + '"' + style + ' data-date="' + key(date) + '" aria-label="' + d + ' ' + MONTHS[date.getMonth()] + (pTxt ? ', ' + pTxt : '') + '"><span class="n">' + d + '</span>' + (pTxt ? '<span class="p">' + pTxt + '</span>' : '') + '</button>';
+    }
+    calGrid.innerHTML = html;
+    monthAvg.textContent = n ? Math.round(sum / n) + ' %' : '—';
+    monthDone.textContent = full ? full + ' jour' + (full > 1 ? 's' : '') + ' à 100 %' : '';
+  }
+
+  // ---------- tabs ----------
+  function showTab(name) {
+    document.getElementById('view-week').hidden = name !== 'week';
+    document.getElementById('view-cal').hidden = name !== 'cal';
+    document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    state.tab = name; save(state);
+    if (name === 'cal') renderCal();
+  }
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+  // ---------- events ----------
+  weekEl.addEventListener('change', e => {
+    const cb = e.target;
+    if (!cb.matches('input[type=checkbox]')) return;
+    const wd = weekData(monday, true);
+    if (cb.checked) wd.checks[cb.dataset.k] = 1; else delete wd.checks[cb.dataset.k];
+    save(state); renderWeek();
+  });
+  document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+    const d = Number(btn.dataset.day);
+    const wd = weekData(monday, true);
+    if (wd.foot2 === d) return;
+    wd.foot2 = d; state.lastFoot2 = d;
+    save(state); renderWeek();
+  }));
+  prevWeekBtn.addEventListener('click', () => { if (monday > START) { monday = addDays(monday, -7); renderWeek(); } });
+  document.getElementById('nextWeek').addEventListener('click', () => { monday = addDays(monday, 7); renderWeek(); });
+  document.getElementById('todayWeek').addEventListener('click', () => { monday = mondayOf(today) < START ? new Date(START) : mondayOf(today); renderWeek(); });
+
+  prevMonthBtn.addEventListener('click', () => { month = new Date(month.getFullYear(), month.getMonth() - 1, 1); renderCal(); });
+  document.getElementById('nextMonth').addEventListener('click', () => { month = new Date(month.getFullYear(), month.getMonth() + 1, 1); renderCal(); });
+  document.getElementById('todayMonth').addEventListener('click', () => { const b = today < START ? START : today; month = new Date(b.getFullYear(), b.getMonth(), 1); renderCal(); });
+  calGrid.addEventListener('click', e => {
+    const cell = e.target.closest('.cell.clickable');
+    if (!cell) return;
+    const [y, m, d] = cell.dataset.date.split('-').map(Number);
+    monday = mondayOf(new Date(y, m - 1, d));
+    renderWeek(); showTab('week');
+    window.scrollTo({ top: 0 });
+  });
+
+
+  renderWeek();
+  showTab(state.tab === 'cal' ? 'cal' : 'week');
+})();
+</script>
+
+</body>
+</html>
