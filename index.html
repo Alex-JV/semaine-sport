@@ -7,49 +7,42 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sport">
-<meta name="theme-color" content="#f1f3ee" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111614" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#16245e">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <title>Semaine Sport</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
 <style>
-  /* Layout: tabs (Semaine / Calendrier). Semaine = control strip + 7 day cards. Calendrier = month grid colored by weighted completion. */
+  /* DA France 98 : un seul univers, le maillot bleu nuit. Blanc pour le texte et les numéros, rouge pour le liseré et l'action, or pour l'étoile.
+     Layout : en-tête + bande de poitrine rayée, onglets Semaine / Calendrier, cartes jour façon dos de maillot (nom en haut, numéro = score). */
   :root {
-    --bg: #f1f3ee;
-    --surface: #ffffff;
-    --surface-2: #e7ebe4;
-    --line: #d3d9d0;
-    --fg: #16211b;
-    --muted: #5e6a62;
-    --accent: #1e6a44;
-    --accent-ink: #ffffff;
-    --foot: #1e6a44;
-    --footing: #b2520f;
-    --renfo: #2d4f82;
-    --leger: #6b4f9a;
-    --missed: #f3d9c9;
-    --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
-    --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #111614; --surface: #1a211d; --surface-2: #232c27; --line: #2f3a34;
-      --fg: #e7ece8; --muted: #9aa69e; --accent: #4fb67f; --accent-ink: #0d1a12;
-      --foot: #4fb67f; --footing: #e4893f; --renfo: #7aa3e0; --leger: #b094e0; --missed: #4a2e1f;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #111614; --surface: #1a211d; --surface-2: #232c27; --line: #2f3a34;
-    --fg: #e7ece8; --muted: #9aa69e; --accent: #4fb67f; --accent-ink: #0d1a12;
-    --foot: #4fb67f; --footing: #e4893f; --renfo: #7aa3e0; --leger: #b094e0; --missed: #4a2e1f;
     color-scheme: dark;
+    --navy-deep: #0f1a48;
+    --bg: #16245e;
+    --surface: #1c2d74;
+    --surface-2: #26398a;
+    --line: rgba(255, 255, 255, .14);
+    --fg: #ffffff;
+    --muted: #a9b5df;
+    --red: #e0262e;
+    --white: #ffffff;
+    --gold: #e9c35b;
+    --heat: #ffffff;
+    --missed: #6a2342;
+    --foot: #ffffff;
+    --footing: #ff6f73;
+    --renfo: #93b6ff;
+    --leger: #e9c35b;
+    --display: "Saira Condensed", "Arial Narrow", Impact, sans-serif;
+    --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
   }
   * { box-sizing: border-box; }
   body {
-    background: var(--bg); color: var(--fg);
+    background-color: var(--bg);
+    background-image: radial-gradient(120% 60% at 50% -10%, #2a3f97 0%, rgba(22, 36, 94, 0) 60%);
+    background-repeat: no-repeat;
+    color: var(--fg);
     font-family: var(--body); font-size: 15px; line-height: 1.45;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -57,104 +50,109 @@
   }
   .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
 
-  header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
-  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(32px, 6vw, 48px); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
-  .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  /* Numéro façon flocage 98 : blanc, liseré rouge */
+  .num {
+    font-family: var(--display); font-weight: 800; color: var(--white); font-variant-numeric: tabular-nums; letter-spacing: .01em;
+    text-shadow: 2px 0 0 var(--red), -2px 0 0 var(--red), 0 2px 0 var(--red), 0 -2px 0 var(--red),
+                 1.4px 1.4px 0 var(--red), -1.4px -1.4px 0 var(--red), 1.4px -1.4px 0 var(--red), -1.4px 1.4px 0 var(--red);
+  }
 
-  .tabs { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 4px; gap: 4px; }
-  .tabs button { border: 0; background: transparent; color: var(--fg); font-family: var(--display); font-size: 18px; font-weight: 600; padding: 7px 20px; border-radius: 7px; cursor: pointer; }
-  .tabs button[aria-selected="true"] { background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px 24px; }
+  h1 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(38px, 9vw, 60px); line-height: .9; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+  .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .eyebrow .star { color: var(--gold); font-size: 15px; letter-spacing: 0; }
+
+  /* Bande de poitrine : blanc / rouge / blanc */
+  .band { height: 16px; border-radius: 2px; background: linear-gradient(to bottom, var(--white) 0 32%, var(--red) 32% 68%, var(--white) 68% 100%); box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+
+  .tabs { display: inline-flex; background: var(--navy-deep); border-radius: 8px; padding: 4px; gap: 4px; }
+  .tabs button { border: 0; background: transparent; color: var(--muted); font-family: var(--display); text-transform: uppercase; letter-spacing: .05em; font-size: 18px; font-weight: 700; padding: 6px 20px; border-radius: 5px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--white); color: var(--bg); }
 
   .nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .nav button { background: var(--surface); border: 1px solid var(--line); color: var(--fg); width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; }
+  .nav button { background: var(--surface); border: 1px solid var(--line); color: var(--fg); width: 38px; height: 38px; border-radius: 8px; font-size: 20px; cursor: pointer; }
   .nav button:hover:not(:disabled) { background: var(--surface-2); }
-  .nav button:disabled { opacity: .35; cursor: not-allowed; }
-  .nav .label { font-family: var(--display); font-size: 20px; font-weight: 600; min-width: 190px; text-align: center; font-variant-numeric: tabular-nums; }
+  .nav button:disabled { opacity: .3; cursor: not-allowed; }
+  .nav .label { font-family: var(--display); font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; min-width: 190px; text-align: center; font-variant-numeric: tabular-nums; }
   .nav .today-btn { width: auto; padding: 0 12px; font-size: 13px; font-family: var(--body); font-weight: 600; }
 
-  .controls { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .controls { display: grid; grid-template-columns: 1fr auto; gap: 14px 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
   @media (max-width: 640px) { .controls { grid-template-columns: 1fr; } }
-  .controls .q { font-family: var(--display); font-size: 20px; font-weight: 600; }
-  .controls .hint { color: var(--muted); font-size: 13px; }
-  .seg { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 4px; gap: 4px; }
-  .seg button { border: 0; background: transparent; color: var(--fg); font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 7px; cursor: pointer; }
-  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .controls .q { font-family: var(--display); font-size: 21px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+  .controls .hint { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .seg { display: inline-flex; background: var(--navy-deep); border-radius: 8px; padding: 4px; gap: 4px; flex-wrap: wrap; }
+  .seg button { border: 0; background: transparent; color: var(--fg); font: inherit; font-weight: 600; padding: 8px 16px; border-radius: 5px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--red); color: var(--white); }
+  button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
   .summary { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
-  .chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--c); }
-  .progress { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .progress strong { color: var(--fg); font-size: 15px; }
-  .bar { width: 140px; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
-  .bar b { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+  .progress { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .progress strong { font-family: var(--display); font-size: 20px; font-weight: 800; color: var(--white); }
+  .bar { width: 160px; height: 8px; background: var(--navy-deep); border-radius: 4px; overflow: hidden; }
+  .bar b { display: block; height: 100%; background: var(--red); width: 0; transition: width .25s; }
 
-  .week { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 12px; }
-  .day { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-  .day.is-today { box-shadow: inset 0 0 0 2px var(--accent); }
+  .week { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .day { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .day.is-today { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
   .day.rest { background: transparent; border-style: dashed; }
-  .day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .day-name { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1; }
-  .day-date { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-  .day-score { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
-  .today-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--accent); }
+  .day-head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 2px 8px; }
+  .day-name { font-family: var(--display); font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; line-height: .95; }
+  .day.done .day-name::after { content: " ★"; color: var(--gold); }
+  .day-date { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; display: flex; gap: 8px; align-items: center; }
+  .day-score { grid-row: 1 / span 2; grid-column: 2; font-size: 34px; line-height: 1; align-self: center; }
+  .day-score small { font-size: 18px; }
+  .today-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--white); background: var(--red); padding: 2px 6px; border-radius: 3px; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; padding: 3px 8px; border-radius: 4px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); }
+  .tag { font-family: var(--display); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; padding: 1px 8px; border-radius: 3px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); }
 
   .block { border-top: 1px solid var(--line); padding-top: 8px; }
-  .block-title { display: flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--c, var(--muted)); margin-bottom: 4px; }
-  .block-title i { width: 8px; height: 8px; border-radius: 2px; background: var(--c, var(--muted)); flex: none; }
-  .block-title small { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .block-title .w { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); font-size: 11px; }
+  .block-title { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 15px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--c, var(--muted)); margin-bottom: 4px; }
+  .block-title i { width: 4px; height: 14px; border-radius: 1px; background: var(--c, var(--muted)); flex: none; }
+  .block-title small { margin-left: auto; font-family: var(--body); font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .block-title .w { font-family: var(--body); font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); font-size: 11px; }
   ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-  label.item { display: flex; align-items: flex-start; gap: 10px; padding: 5px 6px; border-radius: 6px; cursor: pointer; }
+  label.item { display: flex; align-items: flex-start; gap: 10px; padding: 6px; border-radius: 6px; cursor: pointer; }
   label.item:hover { background: var(--surface-2); }
-  label.item input { appearance: none; margin: 2px 0 0; width: 18px; height: 18px; border: 2px solid var(--line); border-radius: 5px; flex: none; background: var(--surface); cursor: pointer; position: relative; }
-  label.item input:checked { background: var(--accent); border-color: var(--accent); }
-  label.item input:checked::after { content: ""; position: absolute; left: 4px; top: 0px; width: 5px; height: 10px; border: solid var(--accent-ink); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
-  label.item input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.item input { appearance: none; -webkit-appearance: none; margin: 1px 0 0; width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, .5); border-radius: 4px; flex: none; background: transparent; cursor: pointer; position: relative; }
+  label.item input:checked { background: var(--red); border-color: var(--red); }
+  label.item input:checked::after { content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid var(--white); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+  label.item input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   label.item span { flex: 1; min-width: 0; }
-  label.item input:checked + span { color: var(--muted); text-decoration: line-through; }
+  label.item input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--red); }
   label.item em { font-style: normal; color: var(--muted); font-size: 13px; }
   .rest-text { color: var(--muted); font-size: 14px; margin: 0; }
-  .day.done .day-name::after { content: " ✓"; color: var(--accent); }
 
-  /* Calendrier */
-  .cal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+  /* Calendrier : plus le jour est rempli, plus la case tend vers le blanc du numéro */
+  .cal { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 12px; }
   .cal-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
-  .cal-stat { font-size: 13px; color: var(--muted); }
-  .cal-stat strong { font-family: var(--display); font-size: 22px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .cal-stat { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .cal-stat strong { font-size: 28px; line-height: 1; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-  .cal-dow { text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--muted); padding-bottom: 2px; }
-  .cell { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 8px; background: var(--surface-2); border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-variant-numeric: tabular-nums; cursor: default; padding: 2px; min-width: 0; color: var(--fg); font: inherit; }
-  .cell .n { font-weight: 600; font-size: 14px; line-height: 1; }
+  .cal-dow { text-align: center; font-family: var(--display); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; color: var(--muted); padding-bottom: 2px; }
+  .cell { aspect-ratio: 1 / 1; max-width: 100%; border-radius: 6px; background: var(--navy-deep); border: 1px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-variant-numeric: tabular-nums; cursor: default; padding: 2px; min-width: 0; color: var(--fg); font: inherit; }
+  .cell .n { font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1; }
   .cell .p { font-size: 11px; line-height: 1; opacity: .85; }
-  .cell.off { background: transparent; color: var(--muted); opacity: .5; }
+  .cell.off { background: transparent; opacity: .5; }
   .cell.before { background: transparent; border: 1px dashed var(--line); color: var(--muted); }
   .cell.rest { background: transparent; border: 1px solid var(--line); color: var(--muted); }
   .cell.future { background: transparent; border: 1px solid var(--line); }
   .cell.missed { background: var(--missed); }
-  .cell.scored { background: color-mix(in srgb, var(--accent) calc(var(--pct) * 1%), var(--surface-2)); }
-  .cell.scored.hi { color: var(--accent-ink); }
-  .cell.is-today { box-shadow: 0 0 0 2px var(--accent); }
+  .cell.scored { background: color-mix(in srgb, var(--heat) calc(var(--pct) * 1%), var(--navy-deep)); }
+  .cell.scored.hi { color: var(--bg); }
+  .cell.is-today { box-shadow: 0 0 0 2px var(--red); }
   .cell.clickable { cursor: pointer; }
-  .cell.clickable:hover { filter: brightness(.95); }
+  .cell.clickable:hover { filter: brightness(1.12); }
   .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); align-items: center; }
   .legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
   .legend .sw { display: inline-flex; gap: 2px; }
-
-  footer { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; color: var(--muted); font-size: 13px; }
-  .reset { background: transparent; border: 1px solid var(--line); color: var(--fg); font: inherit; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
-  .reset:hover { background: var(--surface-2); }
-  .reset.confirm { border-color: var(--footing); color: var(--footing); }
-  .rules { max-width: 65ch; margin: 0; }
   @media (prefers-reduced-motion: reduce) { .bar b { transition: none; } }
 </style>
 <style>
   /* Base autonome : remplace le cadre fourni par Claude */
-  :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); -webkit-text-size-adjust: 100%; }
+  :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); -webkit-text-size-adjust: 100%; }
   body { margin: 0; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+  html { background: #16245e; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -163,7 +161,7 @@
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">Programme hebdo · depuis le 19 oct. 2026</div>
+      <div class="eyebrow"><span class="star" aria-hidden="true">★</span>Depuis le 19 octobre 2026</div>
       <h1>Semaine Sport</h1>
     </div>
     <div class="tabs" role="tablist">
@@ -171,6 +169,7 @@
       <button type="button" role="tab" id="tab-cal" aria-selected="false" data-tab="cal">Calendrier</button>
     </div>
   </header>
+  <div class="band" aria-hidden="true"></div>
 
   <!-- Onglet Semaine -->
   <div id="view-week" class="wrap" style="gap:18px">
@@ -208,13 +207,13 @@
     </div>
     <section class="cal">
       <div class="cal-head">
-        <div class="cal-stat">Moyenne des jours passés ce mois-ci : <strong id="monthAvg">—</strong></div>
+        <div class="cal-stat">Moyenne des jours passés ce mois-ci : <strong id="monthAvg" class="num">—</strong></div>
         <div class="cal-stat" id="monthDone"></div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
       <div class="legend">
         <span><i style="background:var(--missed)"></i>0 % (jour passé)</span>
-        <span><span class="sw"><i style="background:color-mix(in srgb, var(--accent) 25%, var(--surface-2))"></i><i style="background:color-mix(in srgb, var(--accent) 50%, var(--surface-2))"></i><i style="background:color-mix(in srgb, var(--accent) 75%, var(--surface-2))"></i><i style="background:var(--accent)"></i></span>25 → 100 %</span>
+        <span><span class="sw"><i style="background:color-mix(in srgb, var(--heat) 25%, var(--navy-deep))"></i><i style="background:color-mix(in srgb, var(--heat) 50%, var(--navy-deep))"></i><i style="background:color-mix(in srgb, var(--heat) 75%, var(--navy-deep))"></i><i style="background:var(--heat)"></i></span>25 → 100 %</span>
         <span><i style="border:1px solid var(--line)"></i>à venir / repos</span>
         <span>Clique sur un jour pour ouvrir sa semaine.</span>
       </div>
@@ -344,9 +343,9 @@
       card.className = 'day' + (isToday ? ' is-today' : '') + (day.rest ? ' rest' : '');
       const sc = dayScore(day, wd.checks);
       let html = '<div class="day-head"><div class="day-name">' + day.name + '</div>' +
-        (isToday ? '<span class="today-tag">Aujourd’hui</span>' : '') +
-        (sc ? '<span class="day-score">' + sc.pct + ' %</span>' : '') +
-        '<div class="day-date">' + date.getDate() + ' ' + MONTHS[date.getMonth()] + '</div></div>';
+        (sc ? '<span class="day-score num">' + sc.pct + '<small>%</small></span>' : '') +
+        '<div class="day-date">' + date.getDate() + ' ' + MONTHS[date.getMonth()] +
+        (isToday ? '<span class="today-tag">Aujourd\u2019hui</span>' : '') + '</div></div>';
       if (day.rest) {
         html += '<p class="rest-text">Repos. Pas de séance prévue, pas d’activation.</p>';
         card.innerHTML = html;
